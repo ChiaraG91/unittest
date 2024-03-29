@@ -3,8 +3,7 @@ package com.unittest.unittest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unittest.unittest.controllers.UserController;
 import com.unittest.unittest.entities.User;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
@@ -24,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserControllerTests {
 
 	@Autowired
@@ -35,12 +34,10 @@ class UserControllerTests {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@Test
-	void contextLoads() {
-		assertThat(userController).isNotNull();
-	}
+
 
 	@Test
+	@Order(1)
 	void createUser() throws Exception {
 		User user = new User();
 		user.setId(1L);
@@ -57,29 +54,9 @@ class UserControllerTests {
 	}
 
 	@Test
-	void readUserList() throws Exception {
-		createUser();
-		MvcResult result = this.mockMvc.perform(get("/v2/getlist"))
-				.andDo(print()).andReturn();
-
-		List<User> userFromResponseList = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
-		assertThat(userFromResponseList.size()).isNotZero();
-	}
-
-	@Test
-	void getUser() throws Exception {
-		Long studentId = 1L;
-		createUser();
-
-		MvcResult resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/v2/getuser/{id}", studentId))
-				.andExpect(status().isOk())
-				.andExpect(MockMvcResultMatchers.jsonPath("$.id").value(studentId)).andReturn();
-	}
-
-	@Test
+	@Order(2)
 	void updateStudentById() throws Exception {
 		Long userId = 1L;
-		createUser();
 		User updatedUser = new User(userId, "Updated", "Name", "ahahahahah");
 		String userJSON = objectMapper.writeValueAsString(updatedUser);
 
@@ -92,14 +69,40 @@ class UserControllerTests {
 	}
 
 	@Test
-	void deleteUser() throws Exception {
-		createUser();
+	@Order(3)
+	void readUserList() throws Exception {
+		MvcResult result = this.mockMvc.perform(get("/v2/getlist"))
+				.andDo(print()).andReturn();
 
+		List<User> userFromResponseList = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
+		assertThat(userFromResponseList.size()).isNotZero();
+	}
+
+	@Test
+	@Order(4)
+	void getUser() throws Exception {
+		Long studentId = 1L;
+		MvcResult resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/v2/getuser/{id}", studentId))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.jsonPath("$.id").value(studentId)).andReturn();
+	}
+
+
+
+	@Test
+	@Order(5)
+	void deleteUser() throws Exception {
 		MvcResult result = mockMvc.perform(delete("/v2/delete")
 						.param("id", String.valueOf(1L))
 						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk()).andReturn();
 
 
+	}
+
+	@Test
+	@Order(6)
+	void contextLoads() {
+		assertThat(userController).isNotNull();
 	}
 }

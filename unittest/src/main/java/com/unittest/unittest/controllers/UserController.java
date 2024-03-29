@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,13 +44,16 @@ public class UserController {
         if(userOptional.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().body(userOptional.get());
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<User> deleteUser(@RequestParam Long id, @RequestBody User user){
-        User userDaCancellare = userService.deleteUser(id,user);
-        return ResponseEntity.ok().body(userDaCancellare);
+    public ResponseEntity<User> deleteUser(@RequestParam Long id){
+        Optional<User> deletedUser = userService.deleteUser(id);
+        if(deletedUser.isPresent()){
+            return ResponseEntity.ok().body(deletedUser.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
 
